@@ -61,8 +61,8 @@ export function Hero() {
             }`}
           >
             <Button asChild size="lg" className="group bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/learn">
-                Start Learning
+              <Link href="/auth/sign-up">
+                Get Started
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
