@@ -3,28 +3,94 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Clock, TrendingUp, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { ExternalLink, Clock, TrendingUp } from "lucide-react"
+import useSWR from "swr"
 
 interface NewsArticle {
   id: string
   title: string
   description: string
-  content: string
   url: string
   source: string
-  published_at: string
+  publishedAt: string
   category: string
   sentiment?: "positive" | "negative" | "neutral"
-  image_url?: string
 }
 
-interface NewsFeedProps {
-  initialNews: NewsArticle[]
-}
+// Mock news data - in production, this would come from a real API
+const mockNews: NewsArticle[] = [
+  {
+    id: "1",
+    title: "Bitcoin Reaches New All-Time High Amid Institutional Adoption",
+    description:
+      "Major financial institutions continue to embrace Bitcoin, driving prices to unprecedented levels as mainstream adoption accelerates.",
+    url: "#",
+    source: "CryptoNews",
+    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    category: "Bitcoin",
+    sentiment: "positive",
+  },
+  {
+    id: "2",
+    title: "Ethereum 2.0 Upgrade Shows Promising Results",
+    description:
+      "The latest Ethereum network upgrade demonstrates significant improvements in transaction speed and energy efficiency.",
+    url: "#",
+    source: "BlockchainDaily",
+    publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    category: "Ethereum",
+    sentiment: "positive",
+  },
+  {
+    id: "3",
+    title: "Regulatory Framework for Crypto Assets Takes Shape",
+    description:
+      "Global regulators work together to establish comprehensive guidelines for cryptocurrency trading and custody.",
+    url: "#",
+    source: "FinanceToday",
+    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    category: "Regulation",
+    sentiment: "neutral",
+  },
+  {
+    id: "4",
+    title: "DeFi Protocol Launches Revolutionary Lending Platform",
+    description:
+      "New decentralized finance platform introduces innovative features for peer-to-peer lending with enhanced security.",
+    url: "#",
+    source: "DeFiInsider",
+    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    category: "DeFi",
+    sentiment: "positive",
+  },
+  {
+    id: "5",
+    title: "NFT Market Sees Surge in Digital Art Collections",
+    description:
+      "Major artists and brands enter the NFT space, bringing renewed interest and innovation to digital collectibles.",
+    url: "#",
+    source: "NFTWorld",
+    publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    category: "NFT",
+    sentiment: "positive",
+  },
+  {
+    id: "6",
+    title: "Blockchain Technology Adoption Grows in Supply Chain",
+    description:
+      "Fortune 500 companies implement blockchain solutions for enhanced transparency and efficiency in logistics.",
+    url: "#",
+    source: "TechCrypto",
+    publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    category: "Technology",
+    sentiment: "positive",
+  },
+]
 
-export function NewsFeed({ initialNews }: NewsFeedProps) {
-  const articles = initialNews
+const fetcher = () => Promise.resolve(mockNews)
+
+export function NewsFeed() {
+  const { data: articles, error } = useSWR<NewsArticle[]>("news", fetcher)
 
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -50,31 +116,11 @@ export function NewsFeed({ initialNews }: NewsFeedProps) {
     }
   }
 
-  if (!articles || articles.length === 0) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">No news articles available. Please check back later.</p>
-      </Card>
-    )
-  }
-
   return (
     <div className="space-y-6">
       {/* Featured Article */}
-      {articles.length > 0 && (
+      {articles && articles.length > 0 && (
         <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
-          {articles[0].image_url && (
-            <div className="relative h-64 w-full overflow-hidden">
-              <img
-                src={articles[0].image_url || "/placeholder.svg"}
-                alt={articles[0].title}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none"
-                }}
-              />
-            </div>
-          )}
           <div className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -89,15 +135,15 @@ export function NewsFeed({ initialNews }: NewsFeedProps) {
               <Badge variant="outline">{articles[0].category}</Badge>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                {getTimeAgo(articles[0].published_at)}
+                {getTimeAgo(articles[0].publishedAt)}
               </div>
               <span className="text-sm text-muted-foreground">• {articles[0].source}</span>
             </div>
             <Button className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-              <Link href={`/news/${articles[0].id}`}>
+              <a href={articles[0].url} target="_blank" rel="noopener noreferrer">
                 Read Full Article
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
             </Button>
           </div>
         </Card>
@@ -105,44 +151,52 @@ export function NewsFeed({ initialNews }: NewsFeedProps) {
 
       {/* News Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {articles.slice(1).map((article) => (
-          <Link key={article.id} href={`/news/${article.id}`}>
-            <Card className="group overflow-hidden border-border/50 transition-all hover:border-primary/50 h-full cursor-pointer">
-              {article.image_url && (
-                <div className="relative h-48 w-full overflow-hidden">
-                  <img
-                    src={article.image_url || "/placeholder.svg"}
-                    alt={article.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none"
-                    }}
-                  />
-                </div>
-              )}
-              <div className="p-6">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={getSentimentColor(article.sentiment)}>
-                    {article.sentiment || "neutral"}
-                  </Badge>
-                  <Badge variant="outline">{article.category}</Badge>
-                </div>
-                <h3 className="font-heading text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
-                  {article.title}
-                </h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2">{article.description}</p>
-                <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+        {articles?.slice(1).map((article) => (
+          <Card
+            key={article.id}
+            className="group overflow-hidden border-border/50 transition-all hover:border-primary/50"
+          >
+            <div className="p-6">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className={getSentimentColor(article.sentiment)}>
+                  {article.sentiment || "neutral"}
+                </Badge>
+                <Badge variant="outline">{article.category}</Badge>
+              </div>
+              <h3 className="font-heading text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
+                {article.title}
+              </h3>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2">{article.description}</p>
+              <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {getTimeAgo(article.published_at)}
+                    {getTimeAgo(article.publishedAt)}
                   </div>
                   <span>• {article.source}</span>
                 </div>
+                <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80" asChild>
+                  <a href={article.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
               </div>
-            </Card>
-          </Link>
+            </div>
+          </Card>
         ))}
       </div>
+
+      {error && (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">Failed to load news. Please try again later.</p>
+        </Card>
+      )}
+
+      {!articles && !error && (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">Loading news...</p>
+        </Card>
+      )}
     </div>
   )
 }
